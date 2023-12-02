@@ -69,6 +69,11 @@ struct Tirage {
 struct Jeu {
 	int id;
 	std::vector<Tirage> tirages;
+	std::unordered_map<std::string, int> valeursMinimales{
+		{"green", 0},
+		{"red",0},
+		{"blue",0}
+	};
 
 	Jeu(const std::string& ligne)
 	{
@@ -79,7 +84,13 @@ struct Jeu {
 		tirages.reserve(tiragesTexte.size());
 		for (auto& tirage : tiragesTexte)
 		{
-			this->tirages.push_back(Tirage(tirage));
+			Tirage objetTirage{ tirage };
+			this->tirages.push_back(objetTirage);
+			for (auto& couleur : valeursMinimales)
+			{
+				if (objetTirage.cubes[couleurCubes.at(couleur.first)] > valeursMinimales.at(couleur.first))
+					valeursMinimales.at(couleur.first) = objetTirage.cubes[couleurCubes.at(couleur.first)];
+			}
 		}
 	}
 
@@ -104,7 +115,7 @@ std::vector<Jeu> verification(const std::vector<std::string>& lignes)
 	for (auto& ligne : lignes)
 	{
 		Jeu jeu { ligne };
-		if (jeu.tiragesValide())
+		//if (jeu.tiragesValide())
 			jeux.push_back(jeu);
 	}
 	return jeux;
@@ -129,18 +140,21 @@ std::vector<std::string> donneesFichier(const std::string& nomFichier)
 int main()
 {
 	std::vector<std::string> lignes{
-		//"Game 1: 3 blue, 4 red; 1 red, 2 green, 6 blue; 2 green",
-		//"Game 2: 1 blue, 2 green; 3 green, 4 blue, 1 red; 1 green, 1 blue",
-		//"Game 3: 8 green, 6 blue, 20 red; 5 blue, 4 red, 13 green; 5 green, 1 red",
-		//"Game 4: 1 green, 3 red, 6 blue; 3 green, 6 red; 3 green, 15 blue, 14 red",
-		//"Game 5: 6 red, 1 blue, 3 green; 2 blue, 1 red, 2 green"
-			donneesFichier("donnees.txt")
+		"Game 1: 3 blue, 4 red; 1 red, 2 green, 6 blue; 2 green",
+		"Game 2: 1 blue, 2 green; 3 green, 4 blue, 1 red; 1 green, 1 blue",
+		"Game 3: 8 green, 6 blue, 20 red; 5 blue, 4 red, 13 green; 5 green, 1 red",
+		"Game 4: 1 green, 3 red, 6 blue; 3 green, 6 red; 3 green, 15 blue, 14 red",
+		"Game 5: 6 red, 1 blue, 3 green; 2 blue, 1 red, 2 green"
+			//donneesFichier("donnees.txt")
 	};
 	std::vector<Jeu> jeuxValides{ verification(lignes) };
 	int somme{ 0 };
 	for (auto& jeu : jeuxValides)
 	{
-		somme += jeu.id;
+		int multiplication{ 1 };
+		for (auto& couleur : jeu.valeursMinimales)
+			multiplication *= couleur.second;
+		somme += multiplication;
 	}
 	std::cout << "Le total des ID de jeux valides est " << somme;
 }
