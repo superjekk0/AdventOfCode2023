@@ -8,15 +8,16 @@
 #include <map>
 #include <unordered_map>
 #include <algorithm>
+#include <cassert>
 
 struct ValeurTrouve {
     std::size_t index;
-    char aTrouver;
+    char valeur;
 
     ValeurTrouve(std::size_t emplacement, char caractere)
     {
         index = emplacement;
-        aTrouver = caractere;
+        valeur = caractere;
     }
 };
 
@@ -29,25 +30,26 @@ const static std::unordered_map<std::string, char> chiffres{
     { "six", '6' },
     { "seven", '7' },
     { "eight", '8' },
-    { "nine", '9' }
+    { "nine", '9' },
+    { "1", '1' },
+    { "2", '2' },
+    { "3", '3' },
+    { "4", '4' },
+    { "5", '5' },
+    { "6", '6' },
+    { "7", '7' },
+    { "8", '8' },
+    { "9", '9' }
 };
 
 bool contientDebutChiffre(const std::string& chaine)
 {
-    if (chaine[0] == 'o' && chaine.size() < 4)
-        return true;
-    else if (chaine[0] == 't' && chaine.size() < 6)
-        return true;
-    else if (chaine[0] == 'f' && chaine.size() < 5)
-        return true;
-    else if (chaine[0] == 's' && chaine.size() < 6)
-        return true;
-    else if (chaine[0] == 'e' && chaine.size() < 6)
-        return true;
-    else if (chaine[0] == 'n' && chaine.size() < 5)
-        return true;
-    else
-        return false;
+    for (auto& chiffre : chiffres)
+    {
+        if (chiffre.first.starts_with(chaine.c_str()))
+            return true;
+    }
+    return false;
 }
 
 std::vector<ValeurTrouve> valeurDebutChiffreLettre(const std::string& chaine, int debutScan)
@@ -104,60 +106,79 @@ char chiffreEnLettre(std::string& texte)
     }
 }
 
-std::vector<char> valeursSelonLigne(const std::string& ligne)
+std::string valeursSelonLigne(const std::string& ligne)
 {
-    std::vector<char> valeurs;
+    std::string valeurs;
     std::string valeurComplexe {""};
-    for (int i{ 0 }; i < ligne.size(); ++i)
+    //for (int i{ 0 }; i < ligne.size(); ++i)
+    //{
+    //    if (std::isdigit(ligne[i]))
+    //    {
+    //        valeurs.push_back(ligne[i]);
+    //        valeurComplexe = "";
+    //    }
+    //    else
+    //    { 
+    //        valeurComplexe += ligne[i];
+    //        if (!contientDebutChiffre(valeurComplexe))
+    //        {
+    //            valeurComplexe = ligne[i];
+    //            if (!contientDebutChiffre(valeurComplexe))
+    //                valeurComplexe = "";
+    //            continue;
+    //        }
+    //        char resultat{ chiffreEnLettre(valeurComplexe) };
+    //        if (resultat != '0')
+    //        {
+    //            valeurs.push_back(resultat);
+    //            i -= (valeurComplexe.size() - 2);
+    //            valeurComplexe = "";
+    //        }
+    //        else if (resultat == '0' && valeurComplexe.size() > 6)
+    //        {
+    //            valeurComplexe = "";
+    //        }
+    //    }
+    //}
+    std::vector<ValeurTrouve> valeursTrouvees;
+    for (auto& chiffre : chiffres)
     {
-        if (std::isdigit(ligne[i]))
+        for (std::size_t i{ ligne.find(chiffre.first)}; i != chiffre.first.npos; i = ligne.find(chiffre.first, i + 1))
         {
-            valeurs.push_back(ligne[i]);
-            valeurComplexe = "";
-        }
-        else
-        { 
-            valeurComplexe += ligne[i];
-            std::vector<ValeurTrouve> indexProchainsDebut {valeurDebutChiffreLettre(ligne, i)};
-            std::sort(indexProchainsDebut.begin(), indexProchainsDebut.end(), [&] (ValeurTrouve index1, ValeurTrouve index2){
-                return index1.index < index2.index;
-                });
-            if (!contientDebutChiffre(valeurComplexe))
-            {
-                valeurComplexe = "";
-                if (indexProchainsDebut[0].index > i && indexProchainsDebut[0].index != std::string::npos)
-                    i = indexProchainsDebut[0].index;
-            }
-            char resultat{ chiffreEnLettre(valeurComplexe) };
-            if (resultat != '0')
-            {
-                valeurs.push_back(resultat);
-                valeurComplexe = "";
-            }
-            else if (resultat == '0' && valeurComplexe.size() > 6)
-            {
-                valeurComplexe = "";
-            }
+            valeursTrouvees.push_back(ValeurTrouve(i, chiffre.second));
         }
     }
+    std::sort(valeursTrouvees.begin(), valeursTrouvees.end(),
+        [](const ValeurTrouve& a, const ValeurTrouve& b)
+        {
+            return a.index < b.index; 
+        });
+    valeurs.reserve(valeursTrouvees.size());
+    for (auto& valeur : valeursTrouvees)
+    {
+		valeurs.push_back(valeur.valeur);
+	}
+   
     return valeurs;
 }
 
 int main()
 {
     std::fstream fichier {"donnees.txt"};
-    std::vector<std::string> exemple{"two1nine", "eightwothree", "abcone2threexyz", "xtwone3four", "4nineeightseven2", "zoneight234", "7pqrstsixteen" };
-    //while (fichier)
-    //{
-    //    std::string ligne;
-    //    fichier >> ligne;
-    //    exemple.push_back(ligne);
-    //}
+    std::vector<std::string> exemple
+    //{"two1nine", "eightwothree", "abcone2threexyz", "xtwone3four", "4nineeightseven2", "zoneight234", "7pqrstsixteen" }
+        ;
+    while (fichier)
+    {
+        std::string ligne;
+        fichier >> ligne;
+        exemple.push_back(ligne);
+    }
     
     std::vector<int> valeursExemple;
     for (auto& ligne : exemple)
     {
-        std::vector<char> valeurLigne = valeursSelonLigne(ligne);
+        std::string valeurLigne = valeursSelonLigne(ligne);
         std::string total;
         if (!valeurLigne.empty())
         {
@@ -166,7 +187,14 @@ int main()
         }
         valeursExemple.push_back(parse(total));
     }
-    int resultat{};
+    int resultat{0};
+    //assert(valeursExemple[0] == 29);
+    //assert(valeursExemple[1] == 83);
+    //assert(valeursExemple[2] == 13);
+    //assert(valeursExemple[3] == 24);
+    //assert(valeursExemple[4] == 42);
+    //assert(valeursExemple[5] == 14);
+    //assert(valeursExemple[6] == 76);
     for (int valeur : valeursExemple)
     {
         resultat += valeur;
