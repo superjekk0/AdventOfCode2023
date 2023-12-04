@@ -51,3 +51,14 @@ inline std::vector<std::string> donneesFichier(const std::string& nomFichier)
 
 	return lignes;
 }
+
+inline std::vector<std::string> vectorStringSansVide(const std::vector<std::string>& liste)
+{
+	std::vector<std::string> listeSansVide{};
+	for (const auto& element : liste)
+	{
+		if (element != "")
+			listeSansVide.push_back(element);
+	}
+	return listeSansVide;
+}
