@@ -67,4 +67,15 @@ int main()
 		produitNombreGagnants *= quadratiques[i].nbAbcissesAuDessusValeur(distancesLong[i]);
 	}
 	std::cout << produitNombreGagnants;
+	std::string tempsTotal;
+	std::string distanceTotale;
+	for (int i {0}; i < tempsLong.size(); ++i)
+	{
+		tempsTotal += std::to_string(tempsLong[i]);
+		distanceTotale += std::to_string(distancesLong[i]);
+	}
+	long tempsTotalLong{ std::stol(tempsTotal) };
+	long long distanceTotaleLong{ std::stoll(distanceTotale) };
+	Quadratique quadratiqueTotale{ 0l, tempsTotalLong };
+	std::cout << "Il y a " << quadratiqueTotale.nbAbcissesAuDessusValeur(distanceTotaleLong) << " manieres de gagner.";
 }
