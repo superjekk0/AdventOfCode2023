@@ -1,4 +1,5 @@
 #include <string>
+#include <string_view>
 #include <sstream>
 #include <vector>
 #include <fstream>
@@ -30,6 +31,19 @@ inline std::vector<std::string> splitString(std::string str, const char separato
 	{
 		listStrings.push_back(str.substr(0, indexSeparateur));
 		str = str.substr(indexSeparateur + 1, str.size() - indexSeparateur);
+	}
+	if (str != "")
+		listStrings.push_back(str);
+	return listStrings;
+}
+
+inline std::vector<std::string> splitString(std::string str, std::string_view separator)
+{
+	std::vector<std::string> listStrings{};
+	for (size_t indexSeparateur{ str.find(separator)}; indexSeparateur != str.npos; indexSeparateur = str.find(separator))
+	{
+		listStrings.push_back(str.substr(0, indexSeparateur));
+		str = str.substr(indexSeparateur + separator.size(), str.size() - indexSeparateur);
 	}
 	if (str != "")
 		listStrings.push_back(str);

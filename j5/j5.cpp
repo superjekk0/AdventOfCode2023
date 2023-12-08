@@ -41,43 +41,6 @@ struct Portee {
 	}
 };
 
-//std::unordered_map<std::string, std::vector<Portee>> map;
-std::unordered_map<std::string, int> cles;
-
-void ajoutDonnees(const std::string& ligne, const std::string& cle)
-{
-	std::vector<std::string> valeurs{ splitString(ligne, ' ') };
-	long indexDestination{ parse(valeurs[0]) };
-	long indexSource{ parse(valeurs[1]) };
-	long portee{ parse(valeurs[2]) };
-
-	for (long i{ 0 }; i < portee; ++i)
-	{
-		std::vector<Graine>::iterator graineExistante;
-		switch (cles[cle])
-		{
-		case 0:
-			graineExistante = std::find_if(graines.begin(), graines.end(), [indexDestination, indexSource, i](const Graine& graine) {
-				return graine.id == indexDestination + i && graine.idFertilisant == indexSource + i;
-				});
-			//if (graineExistante == graines.end())
-			//{
-			//	graines.push_back(Graine{ indexDestination + i, indexSource + i });
-			//}
-			graines.push_back(Graine{ indexDestination + i, indexSource + i });
-			break;
-		case 1:
-		case 2:
-		case 3:
-		case 4:
-		case 5:
-		case 6:
-		default:
-			break;
-		}
-	}
-}
-
 int main()
 {
 	std::vector<std::string> donnees{
@@ -102,13 +65,14 @@ int main()
 		std::size_t indexSeparateur{ donnees[i].find(':') };
 		if (indexSeparateur != std::string::npos)
 		{
-			cle = donnees[i].substr(0, indexSeparateur);
-			cles[cle] = cles.size();
+			cle = donnees[i].substr(0, donnees[i].find(' '));
+			std::vector<std::string> destinations{ splitString(cle, "-to-") };
+			//cles[cle] = cles.size();
 		}
 		else
 		{
 			//map[cle].push_back(donnees[i]);
-			ajoutDonnees(donnees[i], cle);
+			//ajoutDonnees(donnees[i], cle);
 		}
 	}
 
