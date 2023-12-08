@@ -16,8 +16,8 @@ enum Valeurs {
 	huit,
 	neuf,
 	dix,
-	valet,
-	dame,
+	valet = 1,
+	dame = 12,
 	roi,
 	as
 };
@@ -85,11 +85,18 @@ struct Jeu {
 			occurencesCarte[c]++;
 		}
 		int totalNbCartes = 0;
+		auto occurenceJoker = occurencesCarte.find('J');
+
 		switch (occurencesCarte.size())
 		{
 		case 1:
 			typeJeu = TypeJeu::quinte;
 		case 2:
+			if (occurencesCarte.find('J') != occurencesCarte.end())
+			{
+				typeJeu = TypeJeu::quinte;
+				break;
+			}
 			for (auto& cle : occurencesCarte)
 			{
 				if (cle.second == 4 || cle.second == 1)
@@ -105,9 +112,40 @@ struct Jeu {
 		case 3:
 			for (auto& cle : occurencesCarte)
 			{
+				if (occurenceJoker != occurencesCarte.end() && cle != *occurenceJoker)
+				{
+					switch (occurenceJoker->second)
+					{
+					case 1:
+						switch (cle.second)
+						{
+						case 1:
+							typeJeu = TypeJeu::carre;
+							break;
+						case 2:
+							typeJeu = TypeJeu::full;
+							break;
+						case 3:
+							typeJeu = TypeJeu::carre;
+							break;
+						default:
+							break;
+						}
+						break;
+					case 2:
+						typeJeu = TypeJeu::carre;
+						break;
+					case 3:
+						typeJeu = TypeJeu::carre;
+						break;
+					default:
+						break;
+					}
+					break;
+				}
 				if (cle.second == 1)
 				{
-					if (totalNbCartes == 3)
+					if (totalNbCartes == 3 || totalNbCartes == 1)
 					{
 						typeJeu = TypeJeu::brelan;
 						break;
@@ -121,6 +159,22 @@ struct Jeu {
 					{
 						totalNbCartes += cle.second;
 					}
+					if (occurenceJoker != occurencesCarte.end() && cle != *occurenceJoker)
+					{
+						if (occurenceJoker->second == 1)
+						{
+							typeJeu = TypeJeu::carre;
+						}
+						else if (occurenceJoker->second == 2)
+						{
+							typeJeu = (totalNbCartes == 2 ? TypeJeu::full : TypeJeu::carre);
+						}
+						else
+						{
+							typeJeu = TypeJeu::carre;
+						}
+						break;
+					}
 				}
 				else if (cle.second == 2)
 				{
@@ -132,34 +186,38 @@ struct Jeu {
 					else
 					{
 						totalNbCartes += cle.second;
-						//typeJeu = TypeJeu::paire;
 					}
 				}
 				else if (cle.second == 3)
 				{
+					if (occurenceJoker != occurencesCarte.end() && cle != *occurenceJoker)
+					{
+						typeJeu = TypeJeu::carre;
+						break;
+					}
 					typeJeu = TypeJeu::brelan;
 					break;
 				}
 			}
 			break;
 		case 4:
+			if (occurencesCarte.find('J') != occurencesCarte.end())
+			{
+				typeJeu = TypeJeu::brelan;
+				break;
+			}
 			typeJeu = TypeJeu::paire;
 			break;
 		case 5:
+			if (occurencesCarte.find('J') != occurencesCarte.end())
+			{
+				typeJeu = TypeJeu::paire;
+				break;
+			}
 			typeJeu = TypeJeu::highCard;
 
 		}
 	}
-
-	//operator long() const
-	//{
-	//	std::string formeFinale = "";
-	//	for (char c : jeu)
-	//	{
-	//		formeFinale += std::to_string(static_cast<int>(valeurCarte(c)));
-	//	}
-	//	return std::stol(formeFinale);
-	//}
 };
 
 bool cartePlusFaible(const Jeu& a, const Jeu& b)
