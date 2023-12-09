@@ -166,6 +166,13 @@ struct Graine {
 	}
 };
 
+struct PorteeValide {
+	long long minimum;
+	long long maximum;
+
+	PorteeValide(long long min, long long nbValeursAutorisees) : minimum{ min }, maximum{ min + nbValeursAutorisees - 1 } {}
+};
+
 std::vector<Graine> graines;
 
 void ajoutDonnees(const std::string& ligne, const std::vector<std::string>& origineDestination)
@@ -197,6 +204,7 @@ void remplissage(const std::vector<std::string>& cles)
 	}
 }
 
+// Partie 1
 void ajoutDonnees(const std::vector<std::string>& lignes)
 {
 	std::vector<std::string> origineDestination;
@@ -218,6 +226,11 @@ void ajoutDonnees(const std::vector<std::string>& lignes)
 
 }
 
+void ajoutDonnees(const std::vector<std::string>& lignes, std::vector<PorteeValide>& porteesValides)
+{
+	// TODO : réduire la portée valide selon les données des lignes
+}
+
 int main()
 {
 	std::vector<std::string> donnees{
@@ -236,9 +249,15 @@ int main()
 	for (auto& seed : splitString(chaineSeeds[1], ' '))
 		seeds.push_back(std::stoll(seed));
 
-	for (auto seed : seeds)
+	std::vector<PorteeValide> porteesValides{};
+
+	for (long long i {0}; i < seeds.size(); i += 2)
 	{
-		graines.push_back(Graine{ seed });
+		//for (long long seed{ seeds[i] }; seed < seeds[i] + seeds[i + 1]; ++seed)
+		//{
+		//	graines.push_back(Graine{ seed });
+		//}
+		porteesValides.push_back(PorteeValide{ seeds[i], seeds[i + 1] });
 	}
 
 	ajoutDonnees(donnees);
