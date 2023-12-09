@@ -7,33 +7,22 @@ using Donnees = std::vector<std::string>;
 
 struct DonneesOasis {
 private:
-	//bool nouvellesDonneesDonneZero()
-	//{
-	//	long somme{ 0 };
-	//	for (auto& donnee : donneesGlobales)
-	//	{
-	//		somme += donnee[0];
-	//	}
-
-	//	return somme == 0l;
-	//}
 
 	void ajoutDonneesDebut()
 	{
-		//while (!nouvellesDonneesDonneZero())
-		//{
 		donneesGlobales[donneesGlobales.size() - 1].insert(donneesGlobales[donneesGlobales.size() - 1].begin(), 0l);
 		for (size_t i{ donneesGlobales.size() - 1 }; i > 0; --i)
 		{
 			donneesGlobales[i - 1].insert(donneesGlobales[i - 1].begin(), donneesGlobales[i - 1][0] - donneesGlobales[i][0]);
 		}
-		//}
-		std::cout << "Fin de cet objet\n";
 	}
 public:
 	std::vector<std::vector<long>> donneesGlobales;
-	//std::vector<long> donneesBase;
-	//std::vector<long> differenceDonnees;
+
+	long premiereValeur() const
+	{
+		return donneesGlobales[0][0];
+	}
 
 	DonneesOasis() = default;
 
@@ -87,8 +76,8 @@ std::vector<DonneesOasis> donneesOasis;
 int main()
 {
 	Donnees donnees{
-		"0 3 6 9 12 15", "1 3 6 10 15 21", "10 13 16 21 30 45"
-		//donneesFichier("donnees.txt")
+		//"0 3 6 9 12 15", "1 3 6 10 15 21", "10 13 16 21 30 45"
+		donneesFichier("donnees.txt")
 	};
 	donneesOasis.reserve(donnees.size());
 	for (auto& donnee : donnees)
@@ -100,5 +89,14 @@ int main()
 	{
 		somme += donnee;
 	}
-	std::cout << "Il la somme des dernieres interpolations est: " << somme;
+
+	std::cout << "Il la somme des dernieres interpolations est: " << somme << '\n';
+	somme = 0l;
+
+	for (auto& donnee : donneesOasis)
+	{
+		somme += donnee.premiereValeur();
+	}
+
+	std::cout << "La somme des premieres interpolations est: " << somme << '\n';
 }
