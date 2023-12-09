@@ -22,19 +22,20 @@ constexpr int DESTINATION = 0;
 constexpr int SOURCE = 1;
 
 struct Graine {
-	long idGraine{ -1l };
-	long idSol{ -1l };
-	long position{ -1l };
-	long idFertilisant{ -1l };
-	long idEau{ -1 };
-	long idLumiere{ -1 };
-	long idTemperature{ -1 };
-	long idHumidite{ -1 };
-	//std::unordered_map<std::string, long> infos;
+	long long idGraine{ -1l };
+	long long idSol{ -1l };
+	long long idFertilisant{ -1l };
+	long long idEau{ -1 };
+	long long idLumiere{ -1 };
+	long long idTemperature{ -1 };
+	long long idHumidite{ -1 };
+	long long position{ -1l };
 
 	Graine() = default;
 
-	Graine(long source, long destination, const std::vector<std::string> cles)
+	Graine(long long id) : idGraine{ id } {}
+
+	Graine(long long source, long long destination, const std::vector<std::string> cles)
 	{
 		switch (clesProprietes[cles[SOURCE]])
 		{
@@ -97,7 +98,7 @@ struct Graine {
 		}
 	}
 
-	long operator[](std::string_view cle) const
+	long long operator[](std::string_view cle) const
 	{
 		switch (clesProprietes[static_cast<std::string>(cle)])
 		{
@@ -130,7 +131,7 @@ struct Graine {
 		}
 		return -1l;
 	}
-	long& operator[](std::string_view cle)
+	long long& operator[](std::string_view cle)
 	{
 		switch (clesProprietes[static_cast<std::string>(cle)])
 		{
@@ -170,138 +171,92 @@ std::vector<Graine> graines;
 void ajoutDonnees(const std::string& ligne, const std::vector<std::string>& origineDestination)
 {
 	std::vector<std::string> valeurs{ splitString(ligne, ' ') };
-	long source{ std::stol(valeurs[SOURCE]) };
-	long destination{ std::stol(valeurs[DESTINATION]) };
-	long portee{ std::stol(valeurs[2]) };
+	long long source{ std::stoll(valeurs[SOURCE]) };
+	long long destination{ std::stoll(valeurs[DESTINATION]) };
+	long long portee{ std::stoll(valeurs[2]) };
 	std::string_view sourceString{ origineDestination[SOURCE] };
 	std::string_view destinationString{ origineDestination[DESTINATION] };
 
-	for (long i{ 0 }; i < portee; ++i)
+	for (Graine& graine : graines)
 	{
-		auto graineExistante = std::find_if(graines.begin(), graines.end(),
-			[source, sourceString, i](const Graine& graine)
-			{
-				return graine[sourceString] == source + i;
-			});
-		if (graineExistante == graines.end())
+		if (graine[sourceString] >= source && graine[sourceString] < source + portee)
 		{
-			graines.push_back(Graine{ source + i, destination + i, origineDestination });
-		}
-		else
-		{
-			(*graineExistante)[destinationString] = destination + i;
+			graine[destinationString] = graine[sourceString] + (destination - source);
 		}
 	}
 }
 
-void verificationGraines(const std::vector<std::string>& cles)
+void remplissage(const std::vector<std::string>& cles)
 {
-	if (graines.empty())
-		return;
-	auto copieGraines{ graines };
-	std::sort(copieGraines.begin(), copieGraines.end(), [cles](const Graine& graine1, const Graine& graine2) {
-		return graine1[cles[DESTINATION]] > graine2[cles[DESTINATION]];
-		});
-
-	// Ne devrait s'activer qu'une fois: lors du premier appel de la fonction
-	if (copieGraines.size() < copieGraines[0][cles[DESTINATION]])
+	for (auto& graine : graines)
 	{
-		for (long i{ 0 }; i < copieGraines[0][cles[DESTINATION]]; ++i)
+		if (graine[cles[DESTINATION]] == -1l)
 		{
-			if (std::find_if(copieGraines.begin(), copieGraines.end(), [i, cles](const Graine& graine) {
-				return graine[cles[DESTINATION]] == i;
-				}) == copieGraines.end())
-			{
-				copieGraines.push_back(Graine{ i, i, cles });
-			}
-		}
-		graines = copieGraines;
-		return;
-	}
-
-	for (auto& graine : copieGraines)
-	{
-		if (graine[cles[SOURCE]] == -1)
-		{
-			graine[cles[SOURCE]] = graine[cles[DESTINATION]];
+			graine[cles[DESTINATION]] = graine[cles[SOURCE]];
 		}
 	}
+}
 
-	graines = copieGraines;
+void ajoutDonnees(const std::vector<std::string>& lignes)
+{
+	std::vector<std::string> origineDestination;
+	for (int i{ 1 }; i < lignes.size(); ++i)
+	{
+		std::size_t indexSeparateur{ lignes[i].find(':') };
+		if (indexSeparateur != std::string::npos)
+		{
+			if (origineDestination.size() == 2) remplissage(origineDestination);
+			origineDestination = splitString(lignes[i].substr(0, lignes[i].find(' ')), "-to-");
+			std::swap(origineDestination[0], origineDestination[1]);
+		}
+		else
+		{
+			ajoutDonnees(lignes[i], origineDestination);
+		}
+	}
+	remplissage(origineDestination);
+
 }
 
 int main()
 {
 	std::vector<std::string> donnees{
-		"seeds: 79 14 55 13", "", "seed-to-soil map:", "50 98 2", "52 50 48", "",
-		"soil-to-fertilizer map:", "0 15 37", "37 52 2", "39 0 15", "", "fertilizer-to-water map:", "49 53 8",
-		"0 11 42", "42 0 7", "57 7 4", "", "water-to-light map:", "88 18 7", "18 25 70", "", "light-to-temperature map:",
-		"45 77 23", "81 45 19", "68 64 13", "", "temperature-to-humidity map:", "0 69 1", "1 0 69", "",
-		"humidity-to-location map:", "60 56 37", "56 93 4"
+		//"seeds: 79 14 55 13", "", "seed-to-soil map:", "50 98 2", "52 50 48", "",
+		//"soil-to-fertilizer map:", "0 15 37", "37 52 2", "39 0 15", "", "fertilizer-to-water map:", "49 53 8",
+		//"0 11 42", "42 0 7", "57 7 4", "", "water-to-light map:", "88 18 7", "18 25 70", "", "light-to-temperature map:",
+		//"45 77 23", "81 45 19", "68 64 13", "", "temperature-to-humidity map:", "0 69 1", "1 0 69", "",
+		//"humidity-to-location map:", "60 56 37", "56 93 4"
+		donneesFichier("donnees.txt")
 	};
 	donnees = vectorStringSansVide(donnees);
 
-	std::vector<long> seeds;
+	std::vector<long long> seeds;
 	std::vector<std::string> chaineSeeds{ splitString(donnees[0], ':') };
 	chaineSeeds[1] = trimString(chaineSeeds[1]);
 	for (auto& seed : splitString(chaineSeeds[1], ' '))
-		seeds.push_back(parse(seed));
+		seeds.push_back(std::stoll(seed));
 
-	std::vector<std::string> origineDestination;
-	for (int i{ 1 }; i < donnees.size(); ++i)
+	for (auto seed : seeds)
 	{
-		std::size_t indexSeparateur{ donnees[i].find(':') };
-		if (indexSeparateur != std::string::npos)
-		{
-			verificationGraines(origineDestination);
-			origineDestination = splitString(donnees[i].substr(0, donnees[i].find(' ')), "-to-");
-			std::swap(origineDestination[0], origineDestination[1]);
-			//cles[cle] = cles.size();
-		}
-		else
-		{
-			ajoutDonnees(donnees[i], origineDestination);
-			//map[cle].push_back(donnees[i]);
-			//ajoutDonnees(donnees[i], cle);
-		}
+		graines.push_back(Graine{ seed });
 	}
 
-	std::vector<Graine> grainesSelectionnees{};
-	for (auto& graine : graines)
-	{
-		if (std::find(seeds.begin(), seeds.end(), graine.idGraine) != seeds.end())
-		{
-			grainesSelectionnees.push_back(graine);
-		}
-	}
+	ajoutDonnees(donnees);
 
 	std::cout << "Graines selectionnees: " << std::endl;
-	for (auto& graine : grainesSelectionnees)
+	for (auto& graine : graines)
 	{
 		std::cout << graine.idGraine << ' ';
 	}
 
-	std::cout << "La plus petite localisation est: ";
-	std::sort(grainesSelectionnees.begin(), grainesSelectionnees.end(), [](const Graine& graine1, const Graine& graine2) {
+	std::sort(graines.begin(), graines.end(), [](const Graine& graine1, const Graine& graine2) {
 		return graine1.position < graine2.position;
 		});
-	std::cout << grainesSelectionnees[0].position << '\n';
+	std::cout << "Leurs localisations sont : \n";
+	for (auto& graine : graines)
+	{
+		std::cout << "Graine " << graine.idGraine << " a la position " << graine.position << '\n';
+	}
 
-	//std::sort(graines.begin(), graines.end(), [](const Graine& graine1, const Graine& graine2) {
-	//	return graine1.position < graine2.position;
-	//	});
-	//Graine plusGrosIndex{ graines[graines.size() - 1] };
-
-	//for (long i{ 0 }; i < plusGrosIndex.id; ++i)
-	//{
-	//	auto graineExistante = std::find_if(graines.begin(), graines.end(), [i](const Graine& graine) {
-	//		return graine.id == i;
-	//		});
-	//	if (graineExistante == graines.end())
-	//	{
-	//		graines.push_back(Graine{ i , i });
-	//	}
-	//}
-
-
+	std::cout << '\n' << graines[0].position << '\n';
 }
