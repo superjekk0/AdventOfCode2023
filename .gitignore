@@ -360,5 +360,6 @@ MigrationBackup/
 .ionide/
 
 donnees.txt
+exemple.txt
 # Fody - auto-generated XML schema
 FodyWeavers.xsd

@@ -7,6 +7,8 @@
 #include <cassert>
 #include "../utils.h"
 
+using Donnees = std::vector<std::string>;
+
 std::unordered_map<std::string, long> clesProprietes{
 	{"seed", 0l},
 	{"soil", 1l},
@@ -166,16 +168,35 @@ struct Graine {
 	}
 };
 
+struct Affectation {
+	long long debut;
+	long long fin;
+	long long alteration;
+};
+
+struct PorteeValide;
+
+std::unordered_map<std::string, std::vector<PorteeValide>> porteesValides{};
+
 struct PorteeValide {
+	// Destination
 	long long minimum;
 	long long maximum;
 
+	std::string_view source;
+	std::vector<Affectation> affectationSource;
+	// Ne devrait être utilisé que pour intialiser les graines
 	PorteeValide(long long min, long long nbValeursAutorisees) : minimum{ min }, maximum{ min + nbValeursAutorisees - 1 } {}
+
+	PorteeValide(const std::string_view ligne, const std::string_view c)
+	{
+
+	}
 };
 
 std::vector<Graine> graines;
 
-void ajoutDonnees(const std::string& ligne, const std::vector<std::string>& origineDestination)
+void ajoutDonnees(const std::string& ligne, const Donnees& origineDestination)
 {
 	std::vector<std::string> valeurs{ splitString(ligne, ' ') };
 	long long source{ std::stoll(valeurs[SOURCE]) };
@@ -193,7 +214,7 @@ void ajoutDonnees(const std::string& ligne, const std::vector<std::string>& orig
 	}
 }
 
-void remplissage(const std::vector<std::string>& cles)
+void remplissage(const Donnees& cles)
 {
 	for (auto& graine : graines)
 	{
@@ -205,9 +226,9 @@ void remplissage(const std::vector<std::string>& cles)
 }
 
 // Partie 1
-void ajoutDonnees(const std::vector<std::string>& lignes)
+void ajoutDonnees(const Donnees& lignes)
 {
-	std::vector<std::string> origineDestination;
+	Donnees origineDestination;
 	for (int i{ 1 }; i < lignes.size(); ++i)
 	{
 		std::size_t indexSeparateur{ lignes[i].find(':') };
@@ -226,7 +247,7 @@ void ajoutDonnees(const std::vector<std::string>& lignes)
 
 }
 
-void ajoutDonnees(const std::vector<std::string>& lignes, std::vector<PorteeValide>& porteesValides)
+void ajoutDonnees(const Donnees& lignes, std::vector<PorteeValide>& porteesValides)
 {
 	// TODO : réduire la portée valide selon les données des lignes
 }
@@ -234,12 +255,12 @@ void ajoutDonnees(const std::vector<std::string>& lignes, std::vector<PorteeVali
 int main()
 {
 	std::vector<std::string> donnees{
-		//"seeds: 79 14 55 13", "", "seed-to-soil map:", "50 98 2", "52 50 48", "",
-		//"soil-to-fertilizer map:", "0 15 37", "37 52 2", "39 0 15", "", "fertilizer-to-water map:", "49 53 8",
-		//"0 11 42", "42 0 7", "57 7 4", "", "water-to-light map:", "88 18 7", "18 25 70", "", "light-to-temperature map:",
-		//"45 77 23", "81 45 19", "68 64 13", "", "temperature-to-humidity map:", "0 69 1", "1 0 69", "",
-		//"humidity-to-location map:", "60 56 37", "56 93 4"
-		donneesFichier("donnees.txt")
+		"seeds: 79 14 55 13", "", "seed-to-soil map:", "50 98 2", "52 50 48", "",
+		"soil-to-fertilizer map:", "0 15 37", "37 52 2", "39 0 15", "", "fertilizer-to-water map:", "49 53 8",
+		"0 11 42", "42 0 7", "57 7 4", "", "water-to-light map:", "88 18 7", "18 25 70", "", "light-to-temperature map:",
+		"45 77 23", "81 45 19", "68 64 13", "", "temperature-to-humidity map:", "0 69 1", "1 0 69", "",
+		"humidity-to-location map:", "60 56 37", "56 93 4"
+		//donneesFichier("donnees.txt")
 	};
 	donnees = vectorStringSansVide(donnees);
 
@@ -260,13 +281,7 @@ int main()
 		porteesValides.push_back(PorteeValide{ seeds[i], seeds[i + 1] });
 	}
 
-	ajoutDonnees(donnees);
-
-	std::cout << "Graines selectionnees: " << std::endl;
-	for (auto& graine : graines)
-	{
-		std::cout << graine.idGraine << ' ';
-	}
+	ajoutDonnees(donnees, porteesValides);
 
 	std::sort(graines.begin(), graines.end(), [](const Graine& graine1, const Graine& graine2) {
 		return graine1.position < graine2.position;
