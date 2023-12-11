@@ -183,14 +183,58 @@ struct PorteeValide {
 	long long minimum;
 	long long maximum;
 
-	std::string_view source;
-	std::vector<Affectation> affectationSource;
+	// À chaque cassure, une valeur est rajoutée
+	std::unordered_map<long long, long long> affectations;
 	// Ne devrait être utilisé que pour intialiser les graines
-	PorteeValide(long long min, long long nbValeursAutorisees) : minimum{ min }, maximum{ min + nbValeursAutorisees - 1 } {}
-
-	PorteeValide(const std::string_view ligne, const std::string_view c)
+	PorteeValide(long long min, long long nbValeursAutorisees) : minimum{ min }, maximum{ min + nbValeursAutorisees - 1 }
 	{
+		affectations[minimum] = 0l;
+	}
 
+	long long operator[](long long valeur) const
+	{
+		long long valeurClePlusProche{ 0ll };
+		for (auto& cleAffectation : affectations)
+		{
+			if (valeurClePlusProche < cleAffectation.first && cleAffectation.first < valeur)
+			{
+				valeurClePlusProche = cleAffectation.first;
+			}
+		}
+
+		return valeur + affectations.at(valeurClePlusProche);
+	}
+
+	void ajoutContrainte(const std::string_view ligne)
+	{
+		Donnees donnees{ splitString(static_cast<std::string>(ligne), ' ') };
+		long long source{ std::stoll(donnees[SOURCE]) };
+		long long destination{ std::stoll(donnees[DESTINATION]) };
+		long long portee{ std::stoll(donnees[2]) };
+
+		std::pair<const long long, long long>* affectation{ nullptr };
+		// TODO : vérifier les portées valides
+		for (auto& cle : affectations)
+		{
+			if (cle.first + cle.second >= source && source < cle.first + cle.second + portee)
+			{
+				if (!affectation || affectation->first < cle.first)
+					affectation = &cle;
+			}
+		}
+
+		if (affectation)
+		{
+			if (source - affectation->second + portee > maximum)
+				affectations[maximum] = affectation->second;
+			else
+				affectations[source - affectation->second + portee] = affectation->second;
+
+			if (source - affectation->second < minimum)
+				affectations[minimum] += source - destination;
+			else
+				affectations[source - affectation->second] += source - destination;
+		}
 	}
 };
 
@@ -249,6 +293,14 @@ void ajoutDonnees(const Donnees& lignes)
 
 void ajoutDonnees(const Donnees& lignes, std::vector<PorteeValide>& porteesValides)
 {
+	for (int i{ 1 }; i < lignes.size(); ++i)
+	{
+		if (lignes[i].find(':') != std::string::npos) continue;
+		for (auto& portee : porteesValides)
+		{
+			portee.ajoutContrainte(lignes[i]);
+		}
+	}
 	// TODO : réduire la portée valide selon les données des lignes
 }
 
@@ -272,7 +324,7 @@ int main()
 
 	std::vector<PorteeValide> porteesValides{};
 
-	for (long long i {0}; i < seeds.size(); i += 2)
+	for (long long i{ 0 }; i < seeds.size(); i += 2)
 	{
 		//for (long long seed{ seeds[i] }; seed < seeds[i] + seeds[i + 1]; ++seed)
 		//{

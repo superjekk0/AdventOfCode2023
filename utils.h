@@ -55,7 +55,7 @@ inline std::vector<std::string> donneesFichier(const std::string& nomFichier)
 	std::ifstream fichier{ nomFichier };
 	std::vector<std::string> lignes{};
 	std::string ligne{};
-	while (fichier)
+	while (!fichier.eof())
 	{
 		std::getline(fichier, ligne);
 		lignes.push_back(ligne);
