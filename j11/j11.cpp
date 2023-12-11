@@ -8,6 +8,8 @@
 
 using Donnees = std::vector<std::string>;
 
+constexpr long long expansion{ 1000000 - 1 };
+
 struct Galaxie {
 	long id;
 	long x;
@@ -60,21 +62,21 @@ struct Univers {
 		{
 			if (lignes[i].galaxies.empty())
 			{
-				lignes.insert(std::next(lignes.begin(), i), lignes[i]);
-				++i;
+				//lignes.insert(std::next(lignes.begin(), i), lignes[i]);
+				//++i;
 				//lignes[i + 1].idLigne++;
 				for (auto& galaxie : galaxies)
 				{
-					if (galaxie.y > i - 1)
+					if (galaxie.y > lignes[i].idLigne)
 					{
-						galaxie.y++;
+						galaxie.y += expansion;
 					}
 				}
-
 				for (int j{ i }; j < lignes.size(); ++j)
 				{
-					lignes[j].idLigne++;
+					lignes[j].idLigne += expansion;
 				}
+
 
 			}
 		}
@@ -83,43 +85,26 @@ struct Univers {
 		{
 			if (colonnes[i].galaxies.empty())
 			{
-				colonnes.insert(std::next(colonnes.begin(), i), colonnes[i]);
-				++i;
-				//colonnes[i + 1].idColonne++;
 				for (auto& galaxie : galaxies)
 				{
-					if (galaxie.x > i - 1)
+					if (galaxie.x > colonnes[i].idColonne)
 					{
-						galaxie.x++;
+						galaxie.x += expansion;
 					}
 				}
 
 				for (int j{ i }; j < colonnes.size(); ++j)
 				{
-					colonnes[j].idColonne++;
+					colonnes[j].idColonne += expansion;
 				}
-
 			}
 		}
 	}
-
-private:
-	bool paireDejaPresente(const std::vector<std::array<Galaxie*, 2>>& chemins, const Galaxie& galaxie1, const Galaxie& galaxie2)
-	{
-		for (auto& chemin : chemins)
-		{
-			if ((chemin[0] == &galaxie1 || chemin[1] == &galaxie1) && (chemin[0] == &galaxie2 || chemin[1] == &galaxie2))
-				return true;
-		}
-		return false;
-	}
-public:
 
 	std::vector<long> cheminsPlusCourts()
 	{
 		std::vector<std::array<Galaxie*, 2>> chemins{};
 		std::vector<Galaxie>* refGalaxies{ &galaxies };
-
 
 		// Fonctionnel
 		for (int i{ 0 }; i < galaxies.size(); ++i)
@@ -132,19 +117,15 @@ public:
 					continue;
 				}
 
-				//for (auto& paire : chemins)
-				//{
 				auto resultat = std::find_if(chemins.begin(), chemins.end(),
 					[i, j, &refGalaxies](auto& galaxie)
 					{
 						return galaxie[0] == (&(refGalaxies->at(i))) || galaxie[1] == (&(refGalaxies->at(j)));
-							});
-						//auto resultat2 = std::find_if(chemins.begin(), chemins.end(), [i, j ,&refGalaxies](auto& galaxie) { return galaxie[0] == &refGalaxies[i] || galaxie[1] == &refGalaxies[j]; });
-						if (resultat != chemins.end())
-						{
-							chemins.push_back({ &galaxies[i], &galaxies[j] });
-						}
-						//}
+					});
+				if (resultat != chemins.end())
+				{
+					chemins.push_back({ &galaxies[i], &galaxies[j] });
+				}
 			}
 		}
 
@@ -155,8 +136,6 @@ public:
 		{
 			longueursChemins.push_back(std::abs(chemin[0]->x - chemin[1]->x) +
 				std::abs(chemin[0]->y - chemin[1]->y));
-
-			//std::cout << "Eille";
 		}
 
 		return longueursChemins;
@@ -166,13 +145,13 @@ public:
 int main()
 {
 	std::vector<std::string> donnees{ donneesFichier(
-		"exemple.txt"
+		"donnees.txt"
 	) };
 
 	Univers univers{ donnees };
 
 	auto chemins{ univers.cheminsPlusCourts() };
-	long somme{ 0 };
+	long long somme{ 0 };
 	for (auto& chemin : chemins)
 	{
 		somme += chemin;
